@@ -1,0 +1,61 @@
+
+
+we need to configure storageclass, pv,pvc for this config, all the yamls are available in scpvc.yaml to provision the same.
+
+once after deploying the kafka with charts, you will have to create client pod also to test kafka connections.
+
+Run below from kakfa-client pod:
++++++++++++++++++++++++++++++++
+cat > /tmp/client.properties ( here certificate should come from  kubectl get secrets kafka-0-tls -n test-dev-ns -o json | jq -r '.data."tls.crt"' | base64 --decode)
+
+security.protocol=SASL_SSL
+sasl.mechanism=SCRAM-SHA-256
+ssl.truststore.type=PEM
+ssl.endpoint.identification.algorithm=
+ssl.key.password= 
+ssl.truststore.certificates=-----BEGIN CERTIFICATE----- \E \
+\
+-----END CERTIFICATE-----
+
+===================
+
+cat>/temp/kafka_jaas.conf 
+KafkaClient {
+org.apache.kafka.common.security.scram.ScramLoginModule required
+username="user"
+password="aGAiDZbrNi"; 
+};
+========================
+
+export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_jaas.conf"
+=========================================
+
+====================
+To connect internally form kafka-client pod:
+------------------------
+    PRODUCER:
+        kafka-console-producer.sh \
+            --producer.config /tmp/client.properties \
+            --broker-list kafka-0.kafka-headless.test-dev-ns.svc.cluster.local:9092 \
+            --topic test
+
+    CONSUMER:
+        kafka-console-consumer.sh \
+            --consumer.config /tmp/client.properties \
+            --bootstrap-server kafka.test-dev-ns.svc.cluster.local:9092 \
+            --topic test \
+            --from-beginning
+========================================================================			
+
+
+
+
+
+
+
+
+
+
+
+
+
