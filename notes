@@ -1,4 +1,4 @@
-
+kafka chart chat  version: 20.0.6
 
 we need to configure storageclass, pv,pvc for this config, all the yamls are available in scpvc.yaml to provision the same.
 
